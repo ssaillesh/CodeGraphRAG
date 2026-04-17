@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import time
 import argparse
+from pathlib import Path
+import time
 from typing import Optional
 
-from git import Git
+from git import Git, Repo
 
 from workers.celery_worker import run_pipeline_task
 
@@ -15,12 +16,40 @@ class RepoWatcher:
         self._latest_seen: dict[str, str] = {}
 
     def watch(self, repo_url: str, branch: str = "main", publish: bool = True) -> None:
+        source_kind = "local" if self._is_local_repo(repo_url) else "remote"
+        print(
+            f"[repo_watcher] Watching {source_kind} repo '{repo_url}' on branch '{branch}' "
+            f"every {self.poll_interval_seconds}s (publish={publish})"
+        )
+
         while True:
-            remote_hash = self._get_remote_head(repo_url, branch)
-            if remote_hash and self._latest_seen.get(repo_url) != remote_hash:
-                self._latest_seen[repo_url] = remote_hash
-                run_pipeline_task.delay(repo_url=repo_url, branch=branch, publish=publish)
+            head_hash = self._get_head(repo_url, branch)
+            if head_hash and self._latest_seen.get(repo_url) != head_hash:
+                previous = self._latest_seen.get(repo_url)
+                self._latest_seen[repo_url] = head_hash
+                if previous:
+                    print(f"[repo_watcher] Change detected: {previous[:7]} -> {head_hash[:7]}")
+                else:
+                    print(f"[repo_watcher] Initial head detected: {head_hash[:7]}")
+                self._enqueue_pipeline(repo_url=repo_url, branch=branch, publish=publish)
+                print("[repo_watcher] Pipeline task queued")
+            elif head_hash is None:
+                print(
+                    f"[repo_watcher] Unable to resolve head for '{repo_url}' branch '{branch}'. "
+                    "Will retry."
+                )
+
             time.sleep(self.poll_interval_seconds)
+
+    @staticmethod
+    def _is_local_repo(repo_url: str) -> bool:
+        return Path(repo_url).exists()
+
+    @classmethod
+    def _get_head(cls, repo_url: str, branch: str) -> Optional[str]:
+        if cls._is_local_repo(repo_url):
+            return cls._get_local_head(repo_url, branch)
+        return cls._get_remote_head(repo_url, branch)
 
     @staticmethod
     def _get_remote_head(repo_url: str, branch: str) -> Optional[str]:
@@ -31,6 +60,28 @@ class RepoWatcher:
             return output.split()[0]
         except Exception:
             return None
+
+    @staticmethod
+    def _get_local_head(repo_url: str, branch: str) -> Optional[str]:
+        try:
+            repo = Repo(repo_url)
+            if branch in repo.heads:
+                return repo.heads[branch].commit.hexsha
+
+            # Fall back to current HEAD for detached or non-standard branch naming.
+            return repo.head.commit.hexsha
+        except Exception:
+            return None
+
+    @staticmethod
+    def _enqueue_pipeline(repo_url: str, branch: str, publish: bool) -> None:
+        delay_fn = getattr(run_pipeline_task, "delay", None)
+        if callable(delay_fn):
+            delay_fn(repo_url=repo_url, branch=branch, publish=publish)
+            return
+
+        # Fallback for direct execution contexts where Celery task wrappers are unavailable.
+        run_pipeline_task(repo_url=repo_url, branch=branch, publish=publish)
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
