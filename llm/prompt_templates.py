@@ -1,120 +1,112 @@
 def documentation_prompt(repo_name: str, module_summaries: list[dict], evidence: list[dict]) -> str:
     return f"""
-You are a senior internal documentation engineer.
+You are a senior staff engineer writing high-signal repository documentation.
 
-Your job is to produce a polished Confluence-style documentation pack that works across many repository types.
-Write in the same spirit as a formal internal engineering document: narrative first, structured second, and not bullet-heavy.
+Your task is to generate accurate, implementation-aware docs from evidence.
+Write clearly for developers. Avoid fluff and generic enterprise wording.
 
 ---
 
 # REPOSITORY
 {repo_name}
 
----
-
-# INPUTS
-
-## Module Summaries
+# MODULE SUMMARIES
 {module_summaries}
 
-## Code Evidence (ground truth)
+# CODE EVIDENCE (ground truth)
 {evidence}
 
 ---
 
-# CRITICAL OBJECTIVE
+# OBJECTIVE
 
-You are NOT writing a code inventory.
-
-You ARE writing:
-
-- a system design overview with architecture and flow
-- a requirements page with functional, non-functional, and dependency expectations
-- a practical usage guide that explains how to run and interact with the system
-- a narrative document that sounds like real internal engineering documentation
-- a document that feels like the example structure: design, requirements, and usage up front, with supporting detail pages behind it
-- a template that stays valid for libraries, CLIs, APIs, web apps, automation tools, notebooks, and ML systems
+Produce a structured JSON document that explains:
+- What the code does and why it exists
+- How modules/services communicate with each other
+- How to run the project locally (quick start + setup)
+- System design and execution lifecycle
+- If RAG exists: embedding model, retrieval flow, and why this model is used
+- APIs, key modules, and practical usage guidance
 
 ---
 
-# REQUIRED ANALYSIS (DO THIS FIRST INTERNALLY)
+# REQUIREMENTS
 
-Before writing JSON, determine:
-
-1. What is the project title and one-line subtitle?
-2. What is the system design overview in narrative form?
-3. What is the high-level architecture and execution flow?
-4. What are the functional requirements, non-functional requirements, and dependencies?
-5. What is the usage guide for actually running the system?
-6. What supporting sections belong in a Confluence-style pack?
-7. What should be placed on the main page versus supporting pages?
-8. What are the main capabilities/features and tech stack?
-9. Which sections are not applicable for this repo and should be marked "Not applicable"?
+1) Be evidence-first. If unknown, write "unknown".
+2) Prefer concrete commands and file-backed facts.
+3) Keep section text concise but informative.
+4) For communication flow, explain component interactions (API -> pipeline -> vector store -> LLM -> output).
+5) For RAG, explicitly identify:
+   - embedding model name
+   - retrieval/index mechanism
+   - rationale for model choice (speed/quality/dimension tradeoff)
+6) Return VALID JSON only. No markdown fences.
 
 ---
 
-# OUTPUT FORMAT (STRICT JSON ONLY)
+# JSON CONTRACT (must match exactly)
+
+Return this exact top-level shape (same keys):
 
 Return:
 
 {{
-  "title": "",
-  "subtitle": "",
-  "table_of_contents": ["System Design Overview", "Requirements", "Usage Guide", "Execution Lifecycle", "Summary"],
-
-  "system_design_overview": "",
-  "architecture_diagram": "",
-  "requirements_functional": "",
-  "requirements_nonfunctional": "",
-  "requirements_dependencies": [],
-  "usage_overview": "",
-  "execution_lifecycle": [],
-  "summary": "",
-
-  "overview": "",
-  "architecture": "",
-  "mathematical_formulation": "",
-  "features": [],
-  "tech_stack": [],
-  "project_structure": "",
-  "quick_start": [],
-  "usage_guide": [],
-  "api_reference": [],
-  "validation_testing": [],
-  "performance_notes": "",
-  "roadmap_ideas": [],
-  "license": "",
-
-  "use_case": "",
-  "key_features": "",
-
-  "modules": [
-    {{
-      "module": "",
-      "purpose": "",
-      "functions": [],
-      "dependencies": []
-    }}
-  ],
-
-  "api_documentation": "",
-  "setup_guide": "",
-  "developer_notes": ""
+"title": "",
+"subtitle": "",
+"table_of_contents": [],
+"system_design_overview": "",
+"architecture_diagram": "",
+"requirements_functional": "",
+"requirements_nonfunctional": "",
+"requirements_dependencies": [],
+"usage_overview": "",
+"execution_lifecycle": [],
+"summary": "",
+"overview": "",
+"architecture": "",
+"mathematical_formulation": "Not applicable",
+"features": [],
+"tech_stack": [],
+"project_structure": "",
+"quick_start": [],
+"usage_guide": [],
+"api_reference": [],
+"validation_testing": [],
+"performance_notes": "",
+"roadmap_ideas": [],
+"license": "",
+"use_case": "",
+"key_features": "",
+"modules": [
+{{
+"module": "",
+"purpose": "",
+"functions": [],
+"dependencies": []
+}}
+],
+"api_documentation": "",
+"setup_guide": "",
+"developer_notes": ""
 }}
 
 ---
 
-# RULES
+# ARCHITECTURE DIAGRAM FORMAT
 
-- DO NOT just list functions or imports
-- ALWAYS explain purpose, structure, requirements, and usage in plain English
-- ALWAYS write in a narrative internal engineering style, not a bullet dump
-- NEVER hallucinate unknown parts → write "unknown"
-- Prefer Evidence over Module summaries
-- Place the system design, requirements, and usage flow front and center
-- When a section cannot be derived confidently, write "unknown" or an empty list
-- Keep the template universal; do not assume the repo is a web app, ML project, library, or CLI unless the evidence says so
-- Mark irrelevant sections explicitly as "Not applicable" rather than forcing them to fit
+Use Mermaid in `architecture_diagram` as a string. Keep it compact and readable.
+Example:
+graph TD; A[API] --> B[Pipeline]; B --> C[Retriever]; C --> D[Vector Store]; B --> E[LLM]
+
+---
+
+# QUALITY BAR
+
+- Provide a real run path in `quick_start` with concrete commands when evidence supports it.
+- In `system_design_overview` and `architecture`, explain real component communication.
+- In `performance_notes`, mention known tradeoffs (e.g., model size vs speed).
+- Keep `modules` useful: include purpose, key functions, and meaningful dependencies only.
+- Do not write meta phrases like "this documentation" or "this page will explain". Write direct technical explanations of the repository itself.
 
 ---
 

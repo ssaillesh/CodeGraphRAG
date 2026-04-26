@@ -22,9 +22,10 @@ class VectorStoreManager:
         self.index_dir.mkdir(parents=True, exist_ok=True)
 
     def build_index(self, chunks: list[dict]) -> FAISS:
-        texts = [chunk["text"] for chunk in chunks]
-        metadatas = [chunk.get("metadata", {}) for chunk in chunks]
-        ids = [chunk.get("id") for chunk in chunks]
+        deduped_chunks = self._dedupe_chunks_by_id(chunks)
+        texts = [chunk["text"] for chunk in deduped_chunks]
+        metadatas = [chunk.get("metadata", {}) for chunk in deduped_chunks]
+        ids = [chunk.get("id") for chunk in deduped_chunks]
         vector_store = FAISS.from_texts(
             texts=texts,
             embedding=self.embedding_adapter,
@@ -44,20 +45,52 @@ class VectorStoreManager:
             return
 
         vector_store = self.load_index()
+        deduped_changed_chunks = self._dedupe_chunks_by_id(changed_chunks)
+        changed_ids = [chunk["id"] for chunk in deduped_changed_chunks if chunk.get("id")]
+        existing_ids = self._existing_ids(vector_store)
 
-        if remove_chunk_ids:
+        # Always treat changed IDs as replace operations: remove stale vectors first.
+        ids_to_remove = list(dict.fromkeys([*remove_chunk_ids, *changed_ids]))
+        ids_to_delete = [chunk_id for chunk_id in ids_to_remove if chunk_id in existing_ids]
+
+        if ids_to_delete:
             try:
-                vector_store.delete(ids=remove_chunk_ids)
+                vector_store.delete(ids=ids_to_delete)
             except Exception:
                 pass
 
-        if changed_chunks:
-            texts = [chunk["text"] for chunk in changed_chunks]
-            metadatas = [chunk.get("metadata", {}) for chunk in changed_chunks]
-            ids = [chunk.get("id") for chunk in changed_chunks]
-            vector_store.add_texts(texts=texts, metadatas=metadatas, ids=ids)
+        if deduped_changed_chunks:
+            # Re-check IDs after delete attempt; if deletion failed partially, skip existing IDs to avoid hard failures.
+            existing_after_delete = self._existing_ids(vector_store)
+            chunks_to_add = [
+                chunk for chunk in deduped_changed_chunks if chunk.get("id") not in existing_after_delete
+            ]
+
+            texts = [chunk["text"] for chunk in chunks_to_add]
+            metadatas = [chunk.get("metadata", {}) for chunk in chunks_to_add]
+            ids = [chunk.get("id") for chunk in chunks_to_add]
+
+            if texts:
+                vector_store.add_texts(texts=texts, metadatas=metadatas, ids=ids)
 
         vector_store.save_local(str(self.index_dir))
+
+    @staticmethod
+    def _dedupe_chunks_by_id(chunks: list[dict]) -> list[dict]:
+        deduped: dict[str, dict] = {}
+        without_id: list[dict] = []
+        for chunk in chunks:
+            chunk_id = chunk.get("id")
+            if not chunk_id:
+                without_id.append(chunk)
+                continue
+            deduped[chunk_id] = chunk
+        return [*deduped.values(), *without_id]
+
+    @staticmethod
+    def _existing_ids(vector_store: FAISS) -> set[str]:
+        id_map = getattr(vector_store, "index_to_docstore_id", {}) or {}
+        return {str(doc_id) for doc_id in id_map.values() if doc_id is not None}
 
     def load_index(self) -> FAISS:
         return FAISS.load_local(

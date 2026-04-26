@@ -174,30 +174,7 @@ class ConfluenceFormatter:
 
     def build_ready_page(self, payload: DocumentationPayload, root_title: str) -> ConfluencePage:
         page_title = payload.title or root_title
-        sections: list[str] = [
-            self._h(1, page_title),
-            self._p(payload.subtitle or f"Generated documentation for {payload.repository}."),
-            self._h(2, "System Design Overview"),
-            self._p(payload.system_design_overview or payload.architecture or payload.overview),
-            self._h(2, "Requirements"),
-            self._p(payload.requirements_functional or "Functional requirements are derived from repository evidence and current runtime behavior."),
-            self._p(payload.requirements_nonfunctional or "Non-functional requirements emphasize clarity, reproducibility, and Confluence-friendly output."),
-            self._p(
-                "Dependencies: "
-                + (
-                    ", ".join(payload.requirements_dependencies)
-                    if payload.requirements_dependencies
-                    else "Unknown"
-                )
-            ),
-            self._h(2, "How to Use"),
-            self._h(2, "Usage Guide"),
-            self._p(payload.usage_overview or payload.subtitle or "Unknown"),
-            self._h(2, "System Execution Lifecycle"),
-            self._list_block(payload.execution_lifecycle) or self._p("Unknown"),
-            self._h(2, "Summary"),
-            self._p(payload.summary or payload.developer_notes or "Unknown"),
-        ]
+        sections: list[str] = []
 
         sections.extend([
             self._h(2, "Table of Contents"),
@@ -311,17 +288,6 @@ class ConfluenceFormatter:
         if len(payload.modules) > modules_rendered:
             remaining = len(payload.modules) - modules_rendered
             sections.append(self._p(f"... and {remaining} additional modules omitted from this page for size limits."))
-
-        sections.extend(
-            [
-                self._h(2, "API Documentation"),
-                self._p(payload.api_documentation),
-                self._h(2, "Setup Guide"),
-                self._p(payload.setup_guide),
-                self._h(2, "Developer Notes"),
-                self._p(payload.developer_notes),
-            ]
-        )
 
         body = "\n".join(sections)
         if len(body) > self.MAX_READY_PAGE_CHARS:

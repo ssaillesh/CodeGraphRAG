@@ -16,8 +16,8 @@ class DocumentationGenerator:
         repo_name: str,
         module_summaries: list[dict[str, Any]],
         retrieval_context: list[dict[str, Any]],
-        files: list = None,
-        modules: list[str] = None,
+        files: list[FileDocument] | None = None,
+        modules: list[str] | None = None,
     ) -> DocumentationPayload:
         files = files or []
         modules = modules or []
@@ -44,8 +44,8 @@ class DocumentationGenerator:
         self,
         repo_name: str,
         module_summaries: list[dict[str, Any]],
-        files: list = None,
-        modules: list[str] = None,
+        files: list[FileDocument] | None = None,
+        modules: list[str] | None = None,
     ) -> DocumentationPayload:
         files = files or []
         modules = modules or []
@@ -68,10 +68,10 @@ class DocumentationGenerator:
             "User / Operator -> Entry Point -> Core Application Layer -> Supporting Utilities -> Outputs / Artifacts"
         )
         requirements_functional = (
-            "The system should generate a polished documentation pack from repository evidence, summarize the project structure, and present the results in a Confluence-friendly format that can be published directly as an internal engineering page."
+            "The system should explain repository purpose, architecture, execution flow, and operating steps using concrete evidence from source files so engineers can understand and run the code quickly."
         )
         requirements_nonfunctional = (
-            "The documentation pipeline should remain deterministic, resilient to incomplete repositories, and able to produce readable output even when README content is sparse or missing. The result should stay concise enough for internal review while remaining complete enough to explain purpose, structure, and usage."
+            "The analysis should remain deterministic, resilient to incomplete repositories, and readable when metadata is sparse. Output should be concise, technically accurate, and explicit about unknowns instead of guessing."
         )
         requirements_dependencies = [
             "Python runtime",
@@ -79,17 +79,17 @@ class DocumentationGenerator:
             "Confluence publishing credentials when publishing is enabled",
         ]
         usage_overview = (
-            "Users run the documentation pipeline against a repository URL or local checkout, then review the generated Confluence pages for the system design summary, requirements, and usage guidance. The top-level page is meant to read like a polished internal document rather than a tool log or code dump."
+            "Use this page as a technical guide: it states what the code does, why it exists, how components communicate, how to run it locally, and what dependencies are required for successful execution."
         )
         execution_lifecycle = [
             "Identify repository contents and load source files.",
             "Extract structural evidence and module summaries.",
-            "Generate the enterprise documentation pack.",
-            "Render the result into Confluence pages.",
-            "Optionally publish the pages to the configured space.",
+            "Build a coherent system view from module relationships and runtime entry points.",
+            "Describe setup, execution, and validation steps with concrete commands where available.",
+            "Summarize risks, assumptions, and unknown areas explicitly.",
         ]
         summary = (
-            "This documentation pack explains what the repository does, how it is structured, what it requires, and how to use it in practice. It is designed for internal engineering audiences who want a fast but credible understanding of the system."
+            "This page explains what the repository does, how it is structured, how components interact, what it requires, and how to run and validate it in practice."
         )
         project_structure = self._build_project_structure(files)
         tech_stack = self._infer_tech_stack(files)
@@ -115,7 +115,7 @@ class DocumentationGenerator:
         architecture = "The repository is organized into application logic, supporting utilities, and documentation or orchestration layers."
         mathematical_formulation = "Not applicable."
         use_case = "This repository appears to support developers or users working with the project's core application workflow."
-        key_features = "Core application logic, supporting utilities, and project documentation generation."
+        key_features = "Clear system overview, module communication map, actionable run instructions, and evidence-backed implementation details."
 
         return DocumentationPayload(
             repository=repo_name,
@@ -196,35 +196,42 @@ class DocumentationGenerator:
             repository=repo_name,
             title=self._as_text(data.get("title", defaults.title), defaults.title),
             subtitle=self._as_text(data.get("subtitle", defaults.subtitle), defaults.subtitle),
-            table_of_contents=self._as_list(data.get("table_of_contents", defaults.table_of_contents), defaults.table_of_contents),
-            system_design_overview=self._as_text(data.get("system_design_overview", defaults.system_design_overview), defaults.system_design_overview),
+            table_of_contents=self._as_list(self._first_present(data, "table_of_contents", "toc", default=defaults.table_of_contents), defaults.table_of_contents),
+            system_design_overview=self._as_text(self._first_present(data, "system_design_overview", "architecture_overview", default=defaults.system_design_overview), defaults.system_design_overview),
             architecture_diagram=self._as_text(data.get("architecture_diagram", defaults.architecture_diagram), defaults.architecture_diagram),
             requirements_functional=self._as_text(data.get("requirements_functional", defaults.requirements_functional), defaults.requirements_functional),
             requirements_nonfunctional=self._as_text(data.get("requirements_nonfunctional", defaults.requirements_nonfunctional), defaults.requirements_nonfunctional),
             requirements_dependencies=self._as_list(data.get("requirements_dependencies", defaults.requirements_dependencies), defaults.requirements_dependencies),
             usage_overview=self._as_text(data.get("usage_overview", defaults.usage_overview), defaults.usage_overview),
-            execution_lifecycle=self._as_list(data.get("execution_lifecycle", defaults.execution_lifecycle), defaults.execution_lifecycle),
+            execution_lifecycle=self._as_list(self._first_present(data, "execution_lifecycle", "execution_flow", default=defaults.execution_lifecycle), defaults.execution_lifecycle),
             summary=self._as_text(data.get("summary", defaults.summary), defaults.summary),
-            overview=self._as_text(data.get("overview", defaults.overview), defaults.overview),
+            overview=self._as_text(self._first_present(data, "overview", "description", default=defaults.overview), defaults.overview),
             architecture=self._as_text(data.get("architecture", defaults.architecture), defaults.architecture),
             mathematical_formulation=self._as_text(data.get("mathematical_formulation", defaults.mathematical_formulation), defaults.mathematical_formulation),
             features=self._as_list(data.get("features", defaults.features), defaults.features),
             tech_stack=self._as_list(data.get("tech_stack", defaults.tech_stack), defaults.tech_stack),
             project_structure=self._as_text(data.get("project_structure", defaults.project_structure), defaults.project_structure),
             quick_start=self._as_list(data.get("quick_start", defaults.quick_start), defaults.quick_start),
-            usage_guide=self._as_list(data.get("usage_guide", defaults.usage_guide), defaults.usage_guide),
+            usage_guide=self._as_list(self._first_present(data, "usage_guide", "usage", default=defaults.usage_guide), defaults.usage_guide),
             api_reference=self._as_list(data.get("api_reference", defaults.api_reference), defaults.api_reference),
             validation_testing=self._as_list(data.get("validation_testing", defaults.validation_testing), defaults.validation_testing),
             performance_notes=self._as_text(data.get("performance_notes", defaults.performance_notes), defaults.performance_notes),
             roadmap_ideas=self._as_list(data.get("roadmap_ideas", defaults.roadmap_ideas), defaults.roadmap_ideas),
             license=self._as_text(data.get("license", defaults.license), defaults.license),
             use_case=self._as_text(data.get("use_case", defaults.use_case), defaults.use_case),
-            key_features=self._as_text(data.get("key_features", defaults.key_features), defaults.key_features),
+            key_features=self._as_text(self._first_present(data, "key_features", default=defaults.key_features), defaults.key_features),
             modules=module_docs,
             api_documentation=self._as_text(data.get("api_documentation", defaults.api_documentation), defaults.api_documentation),
             setup_guide=self._as_text(data.get("setup_guide", defaults.setup_guide), defaults.setup_guide),
             developer_notes=self._as_text(data.get("developer_notes", defaults.developer_notes), defaults.developer_notes),
         )
+
+    @staticmethod
+    def _first_present(data: dict, *keys: str, default: Any = None) -> Any:
+        for key in keys:
+            if key in data and data.get(key) is not None:
+                return data.get(key)
+        return default
 
     @staticmethod
     def _title_from_repo_name(repo_name: str) -> str:
