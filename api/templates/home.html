@@ -3,429 +3,1528 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Codebase Documentation System</title>
+    <title>AI Research Lab Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <style>
         :root {
             color-scheme: dark;
-            --bg: #07111f;
-            --bg2: #0d1b2a;
-            --card: rgba(10, 18, 34, 0.72);
-            --card-border: rgba(148, 163, 184, 0.18);
-            --text: #e2e8f0;
-            --muted: #94a3b8;
-            --accent: #22c55e;
-            --accent-2: #38bdf8;
-            --warn: #f59e0b;
-            --shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+            --bg: #040816;
+            --bg-soft: #07111f;
+            --panel: rgba(8, 14, 28, 0.72);
+            --panel-strong: rgba(6, 10, 20, 0.88);
+            --border: rgba(255, 255, 255, 0.12);
+            --border-strong: rgba(255, 255, 255, 0.18);
+            --text: #edf6ff;
+            --muted: #91a4be;
+            --cyan: #00f5ff;
+            --violet: #b400ff;
+            --green: #00ff88;
+            --orange: #ffb347;
+            --red: #ff5d5d;
+            --shadow: 0 26px 80px rgba(0, 0, 0, 0.45);
+            --radius-xl: 28px;
+            --radius-lg: 22px;
+            --radius-md: 16px;
         }
 
         * { box-sizing: border-box; }
+        html, body { min-height: 100%; }
         body {
             margin: 0;
-            min-height: 100vh;
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top left, rgba(56, 189, 248, 0.20), transparent 30%),
-                radial-gradient(circle at top right, rgba(34, 197, 94, 0.18), transparent 26%),
-                linear-gradient(135deg, var(--bg), var(--bg2));
+                radial-gradient(circle at 20% 10%, rgba(180, 0, 255, 0.22), transparent 28%),
+                radial-gradient(circle at 80% 0%, rgba(0, 245, 255, 0.15), transparent 26%),
+                radial-gradient(circle at 40% 90%, rgba(0, 255, 136, 0.08), transparent 24%),
+                linear-gradient(145deg, #02050d, var(--bg-soft) 45%, #030816 100%);
+            overflow-x: hidden;
         }
 
-        .shell {
-            max-width: 1320px;
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 84px 84px;
+            mask-image: radial-gradient(circle at center, black, transparent 80%);
+            opacity: 0.36;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 15%, rgba(0, 245, 255, 0.08), transparent 24%);
+            mix-blend-mode: screen;
+        }
+
+        .app {
+            position: relative;
+            max-width: 1800px;
             margin: 0 auto;
-            padding: 32px;
+            padding: 24px;
         }
 
-        .hero {
+        .topbar {
             display: grid;
-            grid-template-columns: 1.4fr 0.9fr;
-            gap: 24px;
+            grid-template-columns: minmax(0, 1.5fr) minmax(340px, 0.9fr);
+            gap: 18px;
             align-items: stretch;
-            margin-bottom: 24px;
+            margin-bottom: 18px;
         }
 
         .panel {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: 24px;
+            position: relative;
+            background: linear-gradient(180deg, rgba(10, 16, 31, 0.82), rgba(4, 8, 18, 0.78));
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
             box-shadow: var(--shadow);
             backdrop-filter: blur(18px);
-        }
-
-        .brand {
-            padding: 28px;
-            position: relative;
             overflow: hidden;
         }
 
-        .brand::after {
+        .panel::before {
             content: "";
             position: absolute;
-            inset: auto -40px -60px auto;
-            width: 220px;
-            height: 220px;
-            background: radial-gradient(circle, rgba(34, 197, 94, 0.18), transparent 70%);
+            inset: 0;
             pointer-events: none;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.2), rgba(180, 0, 255, 0.1), rgba(0, 255, 136, 0.16));
+            mask:
+                linear-gradient(#000 0 0) content-box,
+                linear-gradient(#000 0 0);
+            mask-composite: exclude;
+        }
+
+        .masthead {
+            padding: 24px;
         }
 
         .eyebrow {
             display: inline-flex;
-            gap: 8px;
             align-items: center;
-            padding: 7px 12px;
+            gap: 10px;
+            padding: 8px 14px;
             border-radius: 999px;
-            background: rgba(148, 163, 184, 0.12);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             color: var(--muted);
             font-size: 12px;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
         }
 
+        .eyebrow i { color: var(--cyan); }
+
         h1 {
-            margin: 18px 0 14px;
-            font-size: clamp(38px, 5vw, 70px);
-            line-height: 0.95;
-            letter-spacing: -0.06em;
+            margin: 18px 0 12px;
+            font-size: clamp(38px, 5vw, 74px);
+            line-height: 0.92;
+            letter-spacing: -0.07em;
         }
 
         .lede {
-            max-width: 780px;
-            font-size: 16px;
-            line-height: 1.7;
-            color: #cbd5e1;
             margin: 0;
+            max-width: 920px;
+            color: #b9c8da;
+            line-height: 1.7;
+            font-size: 15px;
         }
 
-        .stats {
+        .lab-metrics {
             display: grid;
-            gap: 16px;
-            padding: 24px;
-        }
-
-        .stat {
-            border-radius: 18px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
             padding: 18px;
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid rgba(148, 163, 184, 0.14);
         }
 
-        .stat .label {
+        .metric {
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .metric .label {
             display: block;
             color: var(--muted);
-            font-size: 12px;
+            font-size: 11px;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
             margin-bottom: 8px;
         }
 
-        .stat .value {
-            font-size: 18px;
+        .metric .value {
+            font-size: 17px;
             font-weight: 700;
+            line-height: 1.35;
         }
 
-        .workspace {
+        .subcopy {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .chip strong { color: var(--text); }
+
+        .shell-grid {
             display: grid;
-            grid-template-columns: 0.9fr 1.1fr;
-            gap: 24px;
-            align-items: start;
+            grid-template-columns: minmax(300px, 0.82fr) minmax(320px, 0.98fr);
+            gap: 18px;
         }
 
-        .form-card, .results-card {
-            padding: 24px;
+        .stack {
+            display: grid;
+            gap: 18px;
+            min-width: 0;
         }
 
-        .section-title {
-            margin: 0 0 14px;
-            font-size: 20px;
+        .section-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 20px 0;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: 18px;
             letter-spacing: -0.03em;
         }
 
-        .section-subtitle {
-            margin: 0 0 20px;
+        .section-head p {
+            margin: 8px 0 0;
             color: var(--muted);
+            font-size: 13px;
             line-height: 1.6;
-            font-size: 14px;
         }
 
-        .field {
-            margin-bottom: 16px;
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--muted);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .repo-form {
+            padding: 18px 20px 20px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: 1fr 120px;
+            gap: 12px;
         }
 
         label {
             display: block;
+            color: #c9d6e4;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             margin-bottom: 8px;
-            font-size: 13px;
-            color: #cbd5e1;
         }
 
-        input[type="text"], input[type="url"] {
+        input[type="text"], input[type="url"], select {
             width: 100%;
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(5, 9, 20, 0.88);
             color: var(--text);
             border-radius: 14px;
-            padding: 14px 16px;
-            font-size: 15px;
+            padding: 13px 14px;
+            font: inherit;
             outline: none;
+            transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
         }
 
-        input:focus {
-            border-color: rgba(56, 189, 248, 0.6);
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16);
+        input:focus, select:focus {
+            border-color: rgba(0, 245, 255, 0.55);
+            box-shadow: 0 0 0 4px rgba(0, 245, 255, 0.12);
         }
 
-        .inline-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-
-        .check-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #cbd5e1;
-            margin: 6px 0 18px;
-            font-size: 14px;
-        }
-
-        .actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        button {
-            border: none;
-            border-radius: 14px;
-            padding: 14px 18px;
-            color: #08111f;
-            font-weight: 800;
-            cursor: pointer;
-            transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        button:hover { transform: translateY(-1px); }
-
-        .primary {
-            background: linear-gradient(135deg, var(--accent), #86efac);
-            box-shadow: 0 10px 24px rgba(34, 197, 94, 0.22);
-        }
-
-        .secondary {
-            background: linear-gradient(135deg, #7dd3fc, var(--accent-2));
-            box-shadow: 0 10px 24px rgba(56, 189, 248, 0.22);
-        }
-
-        .ghost {
-            color: var(--text);
-            background: rgba(148, 163, 184, 0.12);
-            border: 1px solid rgba(148, 163, 184, 0.18);
-        }
-
-        .result {
-            background: rgba(2, 6, 23, 0.72);
-            border: 1px solid rgba(148, 163, 184, 0.16);
-            border-radius: 18px;
-            min-height: 360px;
-            padding: 18px;
-            overflow: auto;
-        }
-
-        pre {
-            margin: 0;
-            white-space: pre-wrap;
-            word-break: break-word;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            color: #dbeafe;
-        }
-
-        .status {
+        .repo-status {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
+            gap: 10px;
+            padding: 11px 14px;
+            margin: 0 20px 2px;
             border-radius: 999px;
-            background: rgba(15, 23, 42, 0.72);
-            border: 1px solid rgba(148, 163, 184, 0.16);
-            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #d9e4f2;
             font-size: 13px;
-            margin-bottom: 14px;
         }
 
         .dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: var(--warn);
-            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+            background: var(--orange);
+            box-shadow: 0 0 0 4px rgba(255, 179, 71, 0.12);
         }
 
         .dot.ok {
-            background: var(--accent);
-            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+            background: var(--green);
+            box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.12);
         }
 
-        .footer-note {
-            margin-top: 14px;
-            color: var(--muted);
+        .dot.bad {
+            background: var(--red);
+            box-shadow: 0 0 0 4px rgba(255, 93, 93, 0.12);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            appearance: none;
+            border: 0;
+            border-radius: 14px;
+            padding: 12px 14px;
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease;
+        }
+
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+
+        .btn.primary {
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.18), rgba(180, 0, 255, 0.18));
+            border-color: rgba(0, 245, 255, 0.3);
+            box-shadow: 0 14px 30px rgba(0, 245, 255, 0.1);
+        }
+
+        .btn.green {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.18), rgba(0, 245, 255, 0.1));
+            border-color: rgba(0, 255, 136, 0.28);
+        }
+
+        .btn.violet {
+            background: linear-gradient(135deg, rgba(180, 0, 255, 0.2), rgba(0, 245, 255, 0.12));
+            border-color: rgba(180, 0, 255, 0.28);
+        }
+
+        .btn.warn {
+            background: rgba(255, 93, 93, 0.12);
+            border-color: rgba(255, 93, 93, 0.22);
+        }
+
+        .btn.small {
+            padding: 10px 12px;
             font-size: 13px;
-            line-height: 1.6;
         }
 
-        @media (max-width: 980px) {
-            .hero, .workspace { grid-template-columns: 1fr; }
-            .shell { padding: 18px; }
-            h1 { font-size: clamp(34px, 10vw, 54px); }
+        .controls-panel {
+            min-height: 240px;
+            padding-bottom: 18px;
+        }
+
+        .control-grid {
+            display: grid;
+            gap: 14px;
+            padding: 18px 20px 20px;
+        }
+
+        .control-group {
+            display: grid;
+            gap: 12px;
+        }
+
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .toggle-row .meta {
+            display: grid;
+            gap: 4px;
+        }
+
+        .toggle-row .meta strong { font-size: 14px; }
+        .toggle-row .meta span { color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+        .switch {
+            position: relative;
+            width: 54px;
+            height: 32px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .switch::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            transform: translateY(-50%);
+            border-radius: 50%;
+            background: linear-gradient(180deg, #fff, #c8d6ff);
+            transition: left 180ms ease, background 180ms ease;
+        }
+
+        .switch.active {
+            background: rgba(0, 255, 136, 0.18);
+            border-color: rgba(0, 255, 136, 0.32);
+        }
+
+        .switch.active::after { left: 26px; background: linear-gradient(180deg, #7cffcc, #00ff88); }
+
+        .side-panel {
+            display: grid;
+            gap: 18px;
+            align-self: start;
+        }
+
+        .inspector-panel {
+            min-height: 486px;
+        }
+
+        .inspector-body {
+            display: grid;
+            gap: 14px;
+            padding: 18px 20px 20px;
+        }
+
+        .inspector-hero {
+            padding: 18px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.08), rgba(180, 0, 255, 0.08));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .inspector-hero h3 {
+            margin: 0 0 6px;
+            font-size: 22px;
+            letter-spacing: -0.03em;
+        }
+
+        .inspector-hero p {
+            margin: 0;
+            color: #cad6e3;
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .stat-card {
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stat-card .label {
+            display: block;
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-weight: 700;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .preview-box, .chunk-box {
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(4, 8, 18, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .preview-box .title, .chunk-box .title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: #dbe8f6;
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .code-block {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            line-height: 1.7;
+            color: #d4e4f7;
+        }
+
+        .scorebar {
+            height: 9px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            margin-top: 10px;
+        }
+
+        .scorebar span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--cyan), var(--violet), var(--green));
+        }
+
+        .console-panel {
+            margin-top: 18px;
+            min-height: 340px;
+        }
+
+        .console-body {
+            padding: 18px 20px 20px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .console-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .console-window {
+            background: #020611;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .terminal-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .terminal-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .terminal-body {
+            max-height: 270px;
+            overflow: auto;
+            padding: 14px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .stage-group {
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .stage-group summary {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            color: #d9e5f4;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .stage-group summary::-webkit-details-marker { display: none; }
+
+        .stage-group summary .summary-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stage-group summary .summary-left .stage-pill {
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .stage-group summary .summary-right {
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .log-lines {
+            display: grid;
+            gap: 8px;
+            padding: 12px 14px 14px;
+        }
+
+        .log-line {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: start;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #dbe8f6;
+        }
+
+        .log-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 96px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+        }
+
+        .log-tag.ingestion { background: rgba(0, 245, 255, 0.14); color: #96fcff; }
+        .log-tag.parser { background: rgba(180, 0, 255, 0.16); color: #edc0ff; }
+        .log-tag.chunking { background: rgba(0, 255, 136, 0.14); color: #bfffea; }
+        .log-tag.embedding { background: rgba(255, 179, 71, 0.16); color: #ffe0b1; }
+        .log-tag.faiss { background: rgba(0, 245, 255, 0.16); color: #b7fbff; }
+        .log-tag.retriever { background: rgba(180, 0, 255, 0.16); color: #efc9ff; }
+        .log-tag.llm { background: rgba(0, 255, 136, 0.16); color: #bcffe3; }
+        .log-tag.complete { background: rgba(0, 255, 136, 0.22); color: #d9ffe9; }
+        .log-tag.error { background: rgba(255, 93, 93, 0.18); color: #ffc0c0; }
+
+        .log-text { color: #dce7f5; }
+        .log-meta { color: var(--muted); }
+
+        .hidden { display: none !important; }
+
+        .fade-in {
+            animation: fadeIn 380ms ease both;
+        }
+
+        .pulse {
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+
+        .cy-node {
+            transition: opacity 200ms ease, transform 200ms ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.8; }
+        }
+
+        @media (max-width: 1480px) {
+            .shell-grid {
+                grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.2fr);
+            }
+
+            .side-panel {
+                grid-column: 1 / -1;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 1080px) {
+            .topbar, .shell-grid, .lab-metrics, .detail-grid, .mini-grid, .field-grid, .side-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .app { padding: 16px; }
+            .inspector-panel { min-height: auto; }
         }
     </style>
 </head>
 <body>
-    <div class="shell">
-        <div class="hero">
-            <section class="panel brand">
-                <span class="eyebrow">Local AI documentation engineer</span>
-                <h1>Turn a codebase into living Confluence docs.</h1>
+    <main class="app">
+        <section class="topbar">
+            <article class="panel masthead fade-in">
+                <span class="eyebrow"><i class="fa-solid fa-wave-square"></i> AI Research Lab Dashboard</span>
+                <h1>RAGForge</h1>
                 <p class="lede">
-                    Clone or ingest a repository, index changed files only, generate structured documentation, and publish it into a Confluence space. This interface sits on top of the existing FastAPI + Celery pipeline and keeps everything local except the Confluence API.
+                    An AI-powered system that analyzes codebases, retrieves semantic structure through RAG, and generates production-ready documentation automatically. Built for engineers who want clarity, not manual documentation
                 </p>
-            </section>
-            <aside class="panel stats">
-                <div class="stat">
-                    <span class="label">Pipeline</span>
-                    <div class="value">Ingest → index → generate → publish</div>
-                </div>
-                <div class="stat">
-                    <span class="label">Indexing</span>
-                    <div class="value">Incremental updates for large repos</div>
-                </div>
-                <div class="stat">
-                    <span class="label">Output</span>
-                    <div class="value">Hierarchical Confluence pages</div>
+               
+            </article>
+
+            <aside class="panel fade-in">
+                <div class="lab-metrics">
+                    <div class="metric">
+                        <span class="label">Pipeline state</span>
+                        <div class="value" id="metric-state">Idle and awaiting repo input</div>
+                    </div>
+                    <div class="metric">
+                        <span class="label">Retriever focus</span>
+                        <div class="value" id="metric-focus">0 hot files</div>
+                    </div>
+                    <div class="metric">
+                        <span class="label">Latency model</span>
+                        <div class="value" id="metric-latency">0 ms simulated</div>
+                    </div>
                 </div>
             </aside>
-        </div>
+        </section>
 
-        <div class="workspace">
-            <section class="panel form-card">
-                <h2 class="section-title">Run the documentation workflow</h2>
-                <p class="section-subtitle">Submit a repository URL, choose a branch, and generate a single ready-to-publish Confluence page in storage format directly in the browser.</p>
-
-                <div id="status" class="status"><span class="dot" id="status-dot"></span><span id="status-text">Checking API health...</span></div>
-
-                <div class="field">
-                    <label for="repo-url">Repository URL</label>
-                    <input id="repo-url" type="url" value="{{ default_repo_url }}" placeholder="https://github.com/org/repo.git" />
+        <section class="topbar">
+            <article class="panel masthead fade-in">
+                <div class="section-head" style="padding: 0;">
+                    <div>
+                        <h2>Repository control surface</h2>
+                        <p>Enter a repo URL, choose a branch, then run the full pipeline or step through the AI workflow one stage at a time.</p>
+                    </div>
+                    <span class="section-badge"><i class="fa-solid fa-diagram-project"></i> Live simulation</span>
                 </div>
 
-                <div class="inline-row">
-                    <div class="field">
-                        <label for="branch">Branch</label>
-                        <input id="branch" type="text" value="main" placeholder="main" />
+                <div class="repo-form">
+                    <div class="field-grid">
+                        <div>
+                            <label for="repo-url">Repository URL</label>
+                            <input id="repo-url" type="url" value="{{ default_repo_url }}" placeholder="https://github.com/org/repo.git" />
+                        </div>
+                        <div>
+                            <label for="branch">Branch</label>
+                            <input id="branch" type="text" value="main" placeholder="main" />
+                        </div>
                     </div>
-                    <div class="field">
-                        <label for="publish">Publish</label>
-                        <div class="check-row">
-                            <input id="publish" type="checkbox" />
-                            <span>Publish to Confluence</span>
+                    <div class="button-row">
+                        <button class="btn primary" id="btn-run" type="button" onclick="runFullPipeline()"><i class="fa-solid fa-play"></i> Run Full Pipeline</button>
+                        <button class="btn violet" id="btn-step" type="button" onclick="stepPipeline()"><i class="fa-solid fa-forward-step"></i> Step Execution Mode</button>
+                        <button class="btn green" id="btn-pause" type="button" onclick="togglePause()"><i class="fa-solid fa-pause"></i> Pause</button>
+                        <button class="btn warn" type="button" onclick="resetDashboard()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                        <button class="btn" type="button" onclick="toggleDebugMode()"><i class="fa-solid fa-bug"></i> Debug Mode Toggle</button>
+                    </div>
+                </div>
+
+                <div class="repo-status" id="status-pill"><span class="dot" id="status-dot"></span><span id="status-text">Checking API health...</span></div>
+            </article>
+
+            <aside class="panel controls-panel fade-in">
+                <div class="section-head">
+                    <div>
+                        <h2>Control panel</h2>
+                        <p>Drive the simulation, switch into debug mode, or stream a mock WebSocket feed into the console.</p>
+                    </div>
+                    <span class="section-badge"><i class="fa-solid fa-satellite-dish"></i> Operator mode</span>
+                </div>
+
+                <div class="control-grid">
+                    <div class="control-group">
+                        <div class="toggle-row">
+                            <div class="meta">
+                                <strong>Simulation engine</strong>
+                                <span>Local animated pipeline state for fast visual feedback.</span>
+                            </div>
+                            <div class="switch active" id="switch-sim"></div>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="meta">
+                                <strong>Debug overlays</strong>
+                                <span>Shows embeddings, chunk sizes, and vector scores.</span>
+                            </div>
+                            <div class="switch" id="switch-debug"></div>
+                        </div>
+                    </div>
+
+                    <div class="mini-grid">
+                        <div class="metric">
+                            <span class="label">Stage mode</span>
+                            <div class="value" id="metric-mode">Automatic</div>
+                        </div>
+                        <div class="metric">
+                            <span class="label">Logs</span>
+                            <div class="value" id="metric-logs">0 entries</div>
                         </div>
                     </div>
                 </div>
+            </aside>
+        </section>
 
-                <div class="actions">
-                    <button class="ghost" onclick="runIngest()">Ingest only</button>
-                    <button class="primary" onclick="runGenerate()">Generate Confluence page</button>
-                    <button class="secondary" onclick="checkHealth()">Check health</button>
+        <section class="shell-grid">
+            <aside class="side-panel">
+                <article class="panel inspector-panel fade-in">
+                    <div class="section-head">
+                        <div>
+                            <h2>Node inspector</h2>
+                            <p>Component explanation, runtime state, last input/output sample, and metrics.</p>
+                        </div>
+                        <span class="section-badge"><i class="fa-solid fa-microscope"></i> Details</span>
+                    </div>
+
+                    <div class="inspector-body">
+                        <div class="inspector-hero">
+                            <h3 id="inspector-title">Repo Loader</h3>
+                            <p id="inspector-description">Bootstraps the pipeline by cloning or reading the selected repository and emitting the first code objects into the system.</p>
+                        </div>
+
+                        <div class="detail-grid">
+                            <div class="stat-card"><span class="label">Runtime state</span><div class="value" id="inspector-state">idle</div></div>
+                            <div class="stat-card"><span class="label">Latency</span><div class="value" id="inspector-latency">82 ms</div></div>
+                            <div class="stat-card"><span class="label">Input</span><div class="value" id="inspector-input">repo_url + branch</div></div>
+                            <div class="stat-card"><span class="label">Output</span><div class="value" id="inspector-output">repository manifest</div></div>
+                        </div>
+
+                        <div class="preview-box">
+                            <div class="title"><span>Last input / output sample</span><span class="section-badge" id="debug-pill">debug off</span></div>
+                            <pre class="code-block" id="inspector-sample">repo_url: {{ default_repo_url }}\nbranch: main\noutput: repository discovered and ready for chunking</pre>
+                        </div>
+
+                        <div class="chunk-box" id="debug-box">
+                            <div class="title"><span>Chunk + embedding trace</span><span class="section-badge">mock telemetry</span></div>
+                            <div class="code-block" id="inspector-trace">chunk_count: 0\nembedding_status: waiting\nretrieval_score: 0.00</div>
+                            <div class="scorebar"><span id="relevance-bar" style="width: 0%;"></span></div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel fade-in">
+                    <div class="section-head">
+                        <div>
+                            <h2>Pipeline snapshot</h2>
+                            <p>High-level state of the current simulation run.</p>
+                        </div>
+                        <span class="section-badge"><i class="fa-solid fa-layer-group"></i> Snapshot</span>
+                    </div>
+                    <div class="inspector-body" style="padding-top: 0;">
+                        <div class="mini-grid">
+                            <div class="metric">
+                                <span class="label">Active node</span>
+                                <div class="value" id="snapshot-node">Repo Loader</div>
+                            </div>
+                            <div class="metric">
+                                <span class="label">Retrieval score</span>
+                                <div class="value" id="snapshot-score">0.00</div>
+                            </div>
+                        </div>
+                        <div class="metric">
+                            <span class="label">Recent event</span>
+                            <div class="value" id="snapshot-event">Waiting for execution.</div>
+                        </div>
+                    </div>
+                </article>
+            </aside>
+        </section>
+
+        <section class="panel console-panel fade-in">
+            <div class="section-head">
+                <div>
+                    <h2>Live AI execution console</h2>
+                    <p>Stage-grouped logs stream in real time so the workflow feels like an interactive lab instrument.</p>
+                </div>
+                <span class="section-badge"><i class="fa-solid fa-terminal"></i> Streaming output</span>
+            </div>
+
+            <div class="console-body">
+                <div class="console-summary">
+                    <span class="chip"><strong>Flow</strong> Loader → chunks → embeddings → FAISS → retriever → LLM</span>
+                    <span class="chip"><strong>Mode</strong> <span id="console-mode">automatic</span></span>
+                    <span class="chip"><strong>Status</strong> <span id="console-status">idle</span></span>
                 </div>
 
-                <div class="footer-note">
-                    Tip: keep the demo repo path or swap in a GitHub URL. For local demo runs, the watcher and Celery worker are already configured in solo mode on this machine.
+                <div class="console-window">
+                    <div class="terminal-top">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span style="margin-left: 8px; color: var(--muted); font-size: 12px;">live / pipeline.log</span>
+                    </div>
+                    <div class="terminal-body" id="console-log"></div>
                 </div>
-            </section>
-
-            <section class="panel results-card">
-                <h2 class="section-title">Live output</h2>
-                <p class="section-subtitle">Results from API calls will appear here as formatted JSON.</p>
-                <div class="result"><pre id="output">Ready. Run ingest or generate to see results.</pre></div>
-            </section>
-        </div>
-    </div>
+            </div>
+        </section>
+    </main>
 
     <script>
-        const output = document.getElementById('output');
-        const statusText = document.getElementById('status-text');
-        const statusDot = document.getElementById('status-dot');
+        const pipelineStages = [
+            {
+                id: 'loader',
+                label: 'Repo Loader',
+                tag: 'ingestion',
+                description: 'Bootstraps the repository and enumerates source inputs.',
+                input: 'repo_url + branch',
+                output: 'repository manifest',
+                latency: 82,
+                logLines: [
+                    '[ingestion] cloning repository...',
+                    '[ingestion] repository mounted and manifest generated.'
+                ]
+            },
+            {
+                id: 'parser',
+                label: 'AST Parser',
+                tag: 'parser',
+                description: 'Extracts symbols, modules, and dependency structure from source files.',
+                input: 'raw source files',
+                output: 'AST nodes + symbol map',
+                latency: 126,
+                logLines: [
+                    '[parser] extracting AST nodes...',
+                    '[parser] symbols, imports, and modules resolved.'
+                ]
+            },
+            {
+                id: 'chunking',
+                label: 'Chunking Engine',
+                tag: 'chunking',
+                description: 'Splits code into semantic chunks sized for retrieval and generation.',
+                input: 'AST nodes + source text',
+                output: 'semantic chunks',
+                latency: 148,
+                logLines: [
+                    '[chunking] splitting semantic units...',
+                    '[chunking] chunk boundaries aligned to function and class scope.'
+                ]
+            },
+            {
+                id: 'embedding',
+                label: 'Embedding Model',
+                tag: 'embedding',
+                description: 'Turns semantic chunks into vectors for retrieval and similarity search.',
+                input: 'chunked source text',
+                output: 'embedding vectors',
+                latency: 204,
+                logLines: [
+                    '[embedding] generating vectors...',
+                    '[embedding] vectors normalized and batched for indexing.'
+                ]
+            },
+            {
+                id: 'faiss',
+                label: 'FAISS Vector Store',
+                tag: 'faiss',
+                description: 'Indexes vectors for fast nearest-neighbor search across the repository.',
+                input: 'embedding vectors',
+                output: 'vector index',
+                latency: 112,
+                logLines: [
+                    '[faiss] indexing completed...',
+                    '[faiss] index warmed and vector signatures cached.'
+                ]
+            },
+            {
+                id: 'retriever',
+                label: 'Retriever',
+                tag: 'retriever',
+                description: 'Runs semantic search and returns the most relevant code evidence.',
+                input: 'query vector + repository index',
+                output: 'top-k matches',
+                latency: 93,
+                logLines: [
+                    '[retriever] similarity search running...',
+                    '[retriever] top-k context selected for documentation generation.'
+                ]
+            },
+            {
+                id: 'llm',
+                label: 'LLM Generator',
+                tag: 'llm',
+                description: 'Assembles evidence into coherent documentation and structured sections.',
+                input: 'retrieved context',
+                output: 'documentation draft',
+                latency: 268,
+                logLines: [
+                    '[llm] generating documentation...',
+                    '[llm] section hierarchy and narrative assembled.'
+                ]
+            },
+            {
+                id: 'output',
+                label: 'Documentation Output',
+                tag: 'complete',
+                description: 'Packages the generated page for display or optional Confluence publishing.',
+                input: 'documentation draft',
+                output: 'ready-to-publish page',
+                latency: 48,
+                logLines: [
+                    '[complete] output ready',
+                    '[complete] ready for preview or Confluence publish.'
+                ]
+            }
+        ];
 
-        function setOutput(data) {
-            output.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        const fileCatalog = {
+            'api/routes.py': {
+                title: 'api/routes.py',
+                description: 'FastAPI routes and the Jinja home template hook.',
+                preview: 'def home() -> HTMLResponse:\n    return HTMLResponse(_home_page_html())\n\n@router.post("/generate")\ndef generate_docs(request: GenerateRequest) -> dict:\n    return pipeline.run_full_pipeline(...)',
+                chunkCount: 12,
+                embeddingStatus: 'indexed',
+                relevance: 0.95
+            },
+            'api/server.py': {
+                title: 'api/server.py',
+                description: 'Application factory and root route wiring.',
+                preview: 'def create_app() -> FastAPI:\n    app = FastAPI(title=settings.app_name)\n    app.include_router(router)\n    return app',
+                chunkCount: 4,
+                embeddingStatus: 'indexed',
+                relevance: 0.62
+            },
+            'api/templates/home.html': {
+                title: 'api/templates/home.html',
+                description: 'Interactive AI research lab dashboard template.',
+                preview: '<main class="app">\n  <section class="topbar">...\n  <section class="shell-grid">...\n</main>',
+                chunkCount: 24,
+                embeddingStatus: 'indexed',
+                relevance: 0.99
+            },
+            'workers/pipeline.py': {
+                title: 'workers/pipeline.py',
+                description: 'Coordinates ingestion, indexing, retrieval, and generation.',
+                preview: 'class DocumentationPipeline:\n    def run_full_pipeline(...):\n        repo = self.ingest_repository(...)\n        return self.generate_docs(...)',
+                chunkCount: 18,
+                embeddingStatus: 'indexed',
+                relevance: 0.88
+            },
+            'workers/state_store.py': {
+                title: 'workers/state_store.py',
+                description: 'Persists run state, hashes, and incremental metadata.',
+                preview: 'class StateStore:\n    def record_run(...):\n    def get_file_hash(...):\n    def save_chunk_ids(...)',
+                chunkCount: 10,
+                embeddingStatus: 'indexed',
+                relevance: 0.55
+            },
+            'ingestion/ast_parser.py': {
+                title: 'ingestion/ast_parser.py',
+                description: 'AST symbol extraction and module discovery.',
+                preview: 'def parse_ast(source_text: str) -> ParsedModule:\n    tree = ast.parse(source_text)\n    return extract_symbols(tree)',
+                chunkCount: 9,
+                embeddingStatus: 'indexed',
+                relevance: 0.67
+            },
+            'rag/vector_store.py': {
+                title: 'rag/vector_store.py',
+                description: 'FAISS-backed vector storage and similarity operations.',
+                preview: 'class VectorStore:\n    def add_embeddings(...):\n    def search_similar(...):\n    def persist_index(...)',
+                chunkCount: 14,
+                embeddingStatus: 'indexed',
+                relevance: 0.9
+            },
+            'llm/doc_generator.py': {
+                title: 'llm/doc_generator.py',
+                description: 'Documentation synthesis from retrieved evidence.',
+                preview: 'def generate_documentation(context):\n    sections = build_sections(context)\n    return format_documentation(sections)',
+                chunkCount: 15,
+                embeddingStatus: 'indexed',
+                relevance: 0.86
+            },
+            'integrations/confluence_client.py': {
+                title: 'integrations/confluence_client.py',
+                description: 'Confluence publishing and page upsert integration.',
+                preview: 'class ConfluenceClient:\n    def upsert_page(self, page):\n        return self.client.post_page(page)',
+                chunkCount: 8,
+                embeddingStatus: 'indexed',
+                relevance: 0.71
+            },
+            'tests/test_state_store.py': {
+                title: 'tests/test_state_store.py',
+                description: 'Hot test file often retrieved with pipeline-state topics.',
+                preview: 'def test_record_run_persists_state():\n    assert store.record_run(...) is not None',
+                chunkCount: 6,
+                embeddingStatus: 'indexed',
+                relevance: 0.58
+            }
+        };
+
+        const state = {
+            debug: false,
+            running: false,
+            paused: false,
+            stepMode: false,
+            activeStage: -1,
+            selectedNode: 'loader',
+            logCount: 0,
+            runId: 0,
+            stageFuture: null,
+            stageResolve: null,
+            logGroups: new Map(),
+            mockSocket: null,
+            selectedPath: 'api/routes.py'
+        };
+
+        const nodeMeta = pipelineStages.reduce((map, stage) => {
+            map[stage.id] = stage;
+            return map;
+        }, {});
+
+        const elements = {
+            consoleLog: document.getElementById('console-log'),
+            statusText: document.getElementById('status-text'),
+            statusDot: document.getElementById('status-dot'),
+            statusPill: document.getElementById('status-pill'),
+            metricState: document.getElementById('metric-state'),
+            metricFocus: document.getElementById('metric-focus'),
+            metricLatency: document.getElementById('metric-latency'),
+            metricMode: document.getElementById('metric-mode'),
+            metricLogs: document.getElementById('metric-logs'),
+            consoleMode: document.getElementById('console-mode'),
+            consoleStatus: document.getElementById('console-status'),
+            inspectorTitle: document.getElementById('inspector-title'),
+            inspectorDescription: document.getElementById('inspector-description'),
+            inspectorState: document.getElementById('inspector-state'),
+            inspectorLatency: document.getElementById('inspector-latency'),
+            inspectorInput: document.getElementById('inspector-input'),
+            inspectorOutput: document.getElementById('inspector-output'),
+            inspectorSample: document.getElementById('inspector-sample'),
+            inspectorTrace: document.getElementById('inspector-trace'),
+            relevanceBar: document.getElementById('relevance-bar'),
+            debugBox: document.getElementById('debug-box'),
+            debugPill: document.getElementById('debug-pill'),
+            snapshotNode: document.getElementById('snapshot-node'),
+            snapshotScore: document.getElementById('snapshot-score'),
+            snapshotEvent: document.getElementById('snapshot-event'),
+            repoUrl: document.getElementById('repo-url'),
+            branch: document.getElementById('branch'),
+            btnRun: document.getElementById('btn-run'),
+            btnStep: document.getElementById('btn-step'),
+            btnPause: document.getElementById('btn-pause'),
+            switchDebug: document.getElementById('switch-debug'),
+            switchSim: document.getElementById('switch-sim')
+        };
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
         }
 
-        function setStatus(text, ok) {
-            statusText.textContent = text;
-            statusDot.classList.toggle('ok', !!ok);
+        function setStatus(text, tone = 'warn') {
+            elements.statusText.textContent = text;
+            elements.statusDot.classList.remove('ok', 'bad');
+            if (tone === 'ok') {
+                elements.statusDot.classList.add('ok');
+            } else if (tone === 'bad') {
+                elements.statusDot.classList.add('bad');
+            }
+        }
+
+        function setConsoleHeader(text) {
+            elements.consoleStatus.textContent = text;
+        }
+
+        function setMetricState(text) {
+            elements.metricState.textContent = text;
+        }
+
+        function renderInspector(stageId) {
+            const stage = nodeMeta[stageId];
+            if (!stage) return;
+            const sample = `${stage.input}\n→ ${stage.output}\nlatency: ${stage.latency} ms simulated`;
+            const score = stageId === 'output' ? 0.99 : stageId === 'llm' ? 0.88 : stageId === 'retriever' ? 0.76 : stageId === 'faiss' ? 0.62 : stageId === 'embedding' ? 0.5 : 0.34;
+
+            elements.inspectorTitle.textContent = stage.label;
+            elements.inspectorDescription.textContent = stage.description;
+            elements.inspectorState.textContent = state.running && state.activeStage === pipelineStages.findIndex((entry) => entry.id === stageId) ? 'active' : (state.selectedNode === stageId ? 'selected' : 'idle');
+            elements.inspectorLatency.textContent = `${stage.latency} ms`;
+            elements.inspectorInput.textContent = stage.input;
+            elements.inspectorOutput.textContent = stage.output;
+            elements.inspectorSample.textContent = `input:\n${elements.repoUrl.value.trim()}\nbranch: ${elements.branch.value.trim() || 'main'}\n\noutput:\n${sample}`;
+            elements.inspectorTrace.textContent = `chunk_count: ${stageId === 'loader' ? 0 : stageId === 'parser' ? 6 : stageId === 'chunking' ? 18 : stageId === 'embedding' ? 18 : stageId === 'faiss' ? 18 : stageId === 'retriever' ? 18 : stageId === 'llm' ? 18 : 18}\nembedding_status: ${stageId === 'embedding' || stageId === 'faiss' || stageId === 'retriever' || stageId === 'llm' || stageId === 'output' ? 'ready' : 'waiting'}\nretrieval_score: ${score.toFixed(2)}`;
+            elements.relevanceBar.style.width = `${Math.round(score * 100)}%`;
+            elements.snapshotNode.textContent = stage.label;
+            elements.snapshotScore.textContent = score.toFixed(2);
+            elements.snapshotEvent.textContent = state.running ? `executing ${stage.label.toLowerCase()}` : `${stage.label} selected`;
+            elements.metricFocus.textContent = stageId === 'loader' ? '0 hot files' : stageId === 'retriever' ? '7 hot files' : stageId === 'output' ? 'documentation emitted' : 'retrieval in progress';
+            elements.metricLatency.textContent = `${stage.latency} ms simulated`;
+        }
+
+        function updateDebugUI() {
+            const label = state.debug ? 'debug on' : 'debug off';
+            elements.debugPill.textContent = label;
+            elements.debugBox.classList.toggle('hidden', !state.debug);
+            elements.switchDebug.classList.toggle('active', state.debug);
+            elements.metricMode.textContent = state.stepMode ? 'Step mode' : 'Automatic';
+            elements.consoleMode.textContent = state.stepMode ? 'step execution' : 'automatic';
+        }
+
+        function showFileDetails(path) {
+            const data = fileCatalog[path] || fileCatalog['api/routes.py'];
+            const score = Math.round((data.relevance || 0.5) * 100);
+            elements.inspectorTitle.textContent = data.title;
+            elements.inspectorDescription.textContent = data.description;
+            elements.inspectorState.textContent = 'file selected';
+            elements.inspectorLatency.textContent = `${Math.round(50 + score * 1.8)} ms`;
+            elements.inspectorInput.textContent = 'repository chunk preview';
+            elements.inspectorOutput.textContent = 'retrieval match candidate';
+            elements.inspectorSample.innerHTML = data.preview ? escapeHtml(data.preview) : '';
+            elements.inspectorTrace.textContent = `chunk_count: ${data.chunkCount}\nembedding_status: ${data.embeddingStatus}\nretrieval_score: ${data.relevance.toFixed(2)}`;
+            elements.relevanceBar.style.width = `${score}%`;
+            elements.snapshotNode.textContent = data.title;
+            elements.snapshotScore.textContent = data.relevance.toFixed(2);
+            elements.snapshotEvent.textContent = `selected ${path}`;
+            elements.metricFocus.textContent = data.hot ? 'hot file detected' : `${Math.max(1, Math.round(score / 8))} nearby refs`;
+            elements.metricLatency.textContent = `${Math.round(50 + score * 1.8)} ms estimated`;
+        }
+
+        function appendLog(tag, message, stageLabel, isFinal = false) {
+            let group = elements.consoleLog.querySelector(`[data-group="${tag}"]`);
+            if (!group) {
+                group = document.createElement('details');
+                group.className = 'stage-group fade-in';
+                group.open = true;
+                group.dataset.group = tag;
+                group.innerHTML = `
+                    <summary>
+                        <span class="summary-left"><span class="stage-pill ${tag}">${tag}</span><strong>${stageLabel}</strong></span>
+                        <span class="summary-right">stream active</span>
+                    </summary>
+                    <div class="log-lines"></div>
+                `;
+                elements.consoleLog.appendChild(group);
+                group.scrollIntoView({ block: 'end', behavior: 'smooth' });
+            }
+
+            const lines = group.querySelector('.log-lines');
+            const row = document.createElement('div');
+            row.className = 'log-line';
+            row.innerHTML = `<span class="log-tag ${tag}">${tag}</span><span class="log-text">${escapeHtml(message)}</span>`;
+            lines.appendChild(row);
+            if (isFinal) {
+                group.querySelector('.summary-right').textContent = 'complete';
+            }
+            elements.metricLogs.textContent = `${++state.logCount} entries`;
+        }
+
+        function clearConsole() {
+            elements.consoleLog.innerHTML = '';
+            state.logGroups.clear();
+            state.logCount = 0;
+            elements.metricLogs.textContent = '0 entries';
+        }
+
+        function createDelay(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+
+        function stepGate() {
+            if (!state.stepMode) return Promise.resolve();
+            return new Promise((resolve) => {
+                state.stageResolve = resolve;
+                state.stageFuture = resolve;
+            });
+        }
+
+        function releaseStepGate() {
+            if (state.stageResolve) {
+                const resolve = state.stageResolve;
+                state.stageResolve = null;
+                state.stageFuture = null;
+                resolve();
+            }
+        }
+
+        function setRunningIndicators(active) {
+            state.running = active;
+            elements.btnRun.disabled = active;
+            elements.btnRun.style.opacity = active ? '0.75' : '1';
+            elements.btnStep.style.opacity = active ? '0.85' : '1';
+            elements.switchSim.classList.toggle('active', active || state.running);
+        }
+
+        async function runStages(auto = true) {
+            const runToken = ++state.runId;
+            state.running = true;
+            state.stepMode = !auto;
+            state.paused = false;
+            setRunningIndicators(true);
+            updateDebugUI();
+            clearConsole();
+
+            const repoUrl = elements.repoUrl.value.trim();
+            const branch = elements.branch.value.trim() || 'main';
+            const payload = { repo_url: repoUrl, branch, publish: false };
+
+            setStatus('Running live pipeline simulation...', 'warn');
+            setConsoleHeader(auto ? 'automatic' : 'step execution');
+            setMetricState(auto ? 'Simulating end-to-end pipeline' : 'Step execution enabled');
+            appendLog('ingestion', `[ingestion] repo_url = ${repoUrl}`, 'Repo Loader');
+
+            const apiRequest = fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Pipeline request failed');
+                return data;
+            }).catch((error) => ({ error: String(error) }));
+
+            for (let index = 0; index < pipelineStages.length; index += 1) {
+                if (runToken !== state.runId) return;
+                const stage = pipelineStages[index];
+                state.activeStage = index;
+                state.selectedNode = stage.id;
+                setMetricState(`Running ${stage.label}`);
+                elements.snapshotEvent.textContent = `executing ${stage.label.toLowerCase()}`;
+                renderInspector(stage.id);
+
+                appendLog(stage.tag, stage.logLines[0], stage.label);
+
+                const waitMs = auto ? Math.max(360, 980 - index * 78) : 240;
+                await createDelay(waitMs);
+
+                if (state.paused) {
+                    setConsoleHeader('paused');
+                    setStatus('Pipeline paused', 'warn');
+                    while (state.paused && runToken === state.runId) {
+                        await createDelay(120);
+                    }
+                }
+
+                appendLog(stage.tag, stage.logLines[1], stage.label, index === pipelineStages.length - 1);
+                elements.snapshotScore.textContent = stage.id === 'output' ? '0.99' : (0.35 + index * 0.08).toFixed(2);
+                elements.snapshotEvent.textContent = `${stage.label} complete`;
+
+                if (!auto) {
+                    state.running = false;
+                    setConsoleHeader('step awaiting advance');
+                    setStatus(`${stage.label} completed. Advance to continue.`, 'warn');
+                    setRunningIndicators(false);
+                    updateDebugUI();
+                    await stepGate();
+                    if (runToken !== state.runId) return;
+                    state.running = true;
+                    setRunningIndicators(true);
+                }
+            }
+
+            if (runToken !== state.runId) return;
+
+            state.running = false;
+            state.paused = false;
+            setRunningIndicators(false);
+            setConsoleHeader('idle');
+            setStatus('Pipeline complete', 'ok');
+            setMetricState('Documentation ready for preview');
+            elements.snapshotEvent.textContent = 'documentation output ready';
+            showFileDetails('api/templates/home.html');
+
+            const result = await apiRequest;
+            if (result && result.error) {
+                appendLog('error', `[error] ${result.error}`, 'Error', true);
+                setStatus('Backend request failed, simulation completed locally', 'bad');
+                return;
+            }
+
+            elements.snapshotScore.textContent = '0.99';
+            if (result) {
+                appendLog('complete', '[complete] backend response received and rendered.', 'Documentation Output', true);
+                elements.inspectorSample.textContent = JSON.stringify(result, null, 2).slice(0, 1200);
+            }
+        }
+
+        async function runFullPipeline() {
+            state.stepMode = false;
+            updateDebugUI();
+            await runStages(true);
+        }
+
+        async function stepPipeline() {
+            if (!state.running && state.activeStage < 0) {
+                state.stepMode = true;
+                updateDebugUI();
+                await runStages(false);
+                return;
+            }
+
+            if (state.paused) {
+                return;
+            }
+
+            if (state.stageResolve) {
+                releaseStepGate();
+                return;
+            }
+
+            state.stepMode = true;
+            updateDebugUI();
+            await runStages(false);
+        }
+
+        function togglePause() {
+            state.paused = !state.paused;
+            elements.btnPause.innerHTML = state.paused ? '<i class="fa-solid fa-play"></i> Resume' : '<i class="fa-solid fa-pause"></i> Pause';
+            setConsoleHeader(state.paused ? 'paused' : state.stepMode ? 'step execution' : 'automatic');
+            setStatus(state.paused ? 'Pipeline paused' : 'Pipeline resumed', 'warn');
+            if (!state.paused) {
+                releaseStepGate();
+            }
+        }
+
+        function resetDashboard() {
+            state.runId += 1;
+            state.running = false;
+            state.paused = false;
+            state.stepMode = false;
+            state.activeStage = -1;
+            state.selectedNode = 'loader';
+            elements.btnPause.innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
+            setRunningIndicators(false);
+            updateDebugUI();
+            setStatus('Dashboard reset', 'warn');
+            setConsoleHeader('idle');
+            setMetricState('Idle and awaiting repo input');
+            clearConsole();
+            renderInspector('loader');
+        }
+
+        function toggleDebugMode() {
+            state.debug = !state.debug;
+            updateDebugUI();
+            setStatus(state.debug ? 'Debug mode enabled' : 'Debug mode disabled', 'warn');
+            if (state.selectedNode) {
+                renderInspector(state.selectedNode);
+            }
+        }
+
+        function createMockWebSocketStream() {
+            const listeners = {};
+            return {
+                onmessage: null,
+                onopen: null,
+                onclose: null,
+                addEventListener(type, handler) {
+                    (listeners[type] ||= []).push(handler);
+                },
+                emit(type, payload) {
+                    (listeners[type] || []).forEach((handler) => handler(payload));
+                    const callback = this[`on${type}`];
+                    if (callback) callback(payload);
+                },
+                close() {
+                    this.emit('close', {});
+                }
+            };
         }
 
         async function checkHealth() {
-            setStatus('Checking API health...', false);
+            setStatus('Checking API health...', 'warn');
             try {
                 const response = await fetch('/api/health');
                 const data = await response.json();
-                setStatus('API is healthy', true);
-                setOutput({ health: data, timestamp: new Date().toISOString() });
+                setStatus('API is healthy', 'ok');
+                setMetricState('API online');
+                appendLog('ingestion', `[ingestion] health check ${data.status || 'ok'}`, 'Repo Loader');
             } catch (error) {
-                setStatus('API health check failed', false);
-                setOutput({ error: String(error) });
+                setStatus('API health check failed', 'bad');
+                appendLog('error', `[error] ${String(error)}`, 'Error');
             }
         }
 
-        async function runIngest() {
-            const repoUrl = document.getElementById('repo-url').value.trim();
-            const branch = document.getElementById('branch').value.trim() || null;
-            setStatus('Running ingest...', false);
-            setOutput('Submitting ingest request...');
-            try {
-                const response = await fetch('/api/ingest', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ repo_url: repoUrl, branch })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Ingest failed');
-                setStatus('Ingest complete', true);
-                setOutput(data);
-            } catch (error) {
-                setStatus('Ingest failed', false);
-                setOutput({ error: String(error) });
-            }
+        function startMockSocket() {
+            if (state.mockSocket) return state.mockSocket;
+            state.mockSocket = createMockWebSocketStream();
+            state.mockSocket.emit('open', {});
+            return state.mockSocket;
         }
 
-        async function runGenerate() {
-            const repoUrl = document.getElementById('repo-url').value.trim();
-            const branch = document.getElementById('branch').value.trim() || null;
-            const publish = document.getElementById('publish').checked;
-            setStatus(publish ? 'Generating and publishing Confluence page...' : 'Generating ready Confluence page...', false);
-            setOutput('Submitting ready-page request...');
-            try {
-                const response = await fetch('/api/confluence-page', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ repo_url: repoUrl, branch, publish })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Page generation failed');
-                setStatus(publish ? 'Page published to Confluence' : 'Ready-to-publish page generated', true);
-                setOutput(data);
-            } catch (error) {
-                setStatus('Page generation failed', false);
-                setOutput({ error: String(error) });
-            }
+        function init() {
+            showFileDetails('api/routes.py');
+            renderInspector('loader');
+            updateDebugUI();
+            setStatus('API ready', 'ok');
+            setConsoleHeader('idle');
+            startMockSocket();
+            appendLog('ingestion', '[ingestion] cloning repository...', 'Repo Loader');
+            appendLog('parser', '[parser] extracting AST nodes...', 'AST Parser');
+            checkHealth();
         }
 
-        checkHealth();
+        window.runFullPipeline = runFullPipeline;
+        window.stepPipeline = stepPipeline;
+        window.togglePause = togglePause;
+        window.resetDashboard = resetDashboard;
+        window.toggleDebugMode = toggleDebugMode;
+        window.checkHealth = checkHealth;
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && state.running) {
+                togglePause();
+            }
+            if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+                runFullPipeline();
+            }
+        });
+
+        init();
     </script>
 </body>
 </html>
