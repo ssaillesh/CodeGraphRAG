@@ -765,6 +765,7 @@
                     </div>
                     <div class="button-row">
                         <button class="btn primary" id="btn-run" type="button" onclick="runFullPipeline()"><i class="fa-solid fa-play"></i> Run Full Pipeline</button>
+                        <button class="btn violet" type="button" onclick="publishToConfluence()"><i class="fa-solid fa-book"></i> Publish to Confluence</button>
                         <button class="btn violet" id="btn-step" type="button" onclick="stepPipeline()"><i class="fa-solid fa-forward-step"></i> Step Execution Mode</button>
                         <button class="btn green" id="btn-pause" type="button" onclick="togglePause()"><i class="fa-solid fa-pause"></i> Pause</button>
                         <button class="btn warn" type="button" onclick="resetDashboard()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
@@ -1397,6 +1398,37 @@
             await runStages(true);
         }
 
+        async function publishToConfluence() {
+            const repoUrl = elements.repoUrl.value.trim();
+            const branch = elements.branch.value.trim() || 'main';
+
+            setStatus('Publishing to Confluence...', 'warn');
+            setConsoleHeader('publishing');
+            appendLog('complete', '[complete] packaging documentation for Confluence publish...', 'Documentation Output');
+
+            try {
+                const response = await fetch('/api/confluence-page', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ repo_url: repoUrl, branch, publish: true })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail || 'Publish failed');
+
+                setStatus('Published to Confluence', 'ok');
+                setConsoleHeader('publish complete');
+                appendLog('complete', '[complete] Confluence page published successfully.', 'Documentation Output', true);
+                elements.inspectorSample.textContent = JSON.stringify(data, null, 2).slice(0, 1200);
+                elements.snapshotEvent.textContent = 'confluence publish complete';
+                elements.snapshotScore.textContent = '1.00';
+            } catch (error) {
+                setStatus('Publish failed', 'bad');
+                setConsoleHeader('publish error');
+                appendLog('error', `[error] ${String(error)}`, 'Error', true);
+            }
+        }
+
         async function stepPipeline() {
             if (!state.running && state.activeStage < 0) {
                 state.stepMode = true;
@@ -1509,6 +1541,7 @@
         }
 
         window.runFullPipeline = runFullPipeline;
+        window.publishToConfluence = publishToConfluence;
         window.stepPipeline = stepPipeline;
         window.togglePause = togglePause;
         window.resetDashboard = resetDashboard;
