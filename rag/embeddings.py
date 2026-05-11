@@ -1,9 +1,6 @@
 from __future__ import annotations
-
 from typing import Optional
-
 from sentence_transformers import SentenceTransformer
-
 
 class EmbeddingModel:
     def __init__(self, model_name: str):
